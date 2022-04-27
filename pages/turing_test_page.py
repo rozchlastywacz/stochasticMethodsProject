@@ -19,25 +19,33 @@ layout = html.Div(
                 html.Div(
                     children=[
                         dcc.Graph(id='image-graph'),
-                        html.Div(id='image-type', hidden=False)
+                        html.Div(id='image-type', hidden=True)
                     ],
                     id='image-div',
                     style={'textAlign': 'center'}
-                ),
-                width={"size": 6, "offset": 3}
+                )
+                # width={"size": 6, "offset": 3}
             )
         ),
         dbc.Row(
             dbc.Col(
                 html.Div(
                     children=[
-                        dbc.Button('Real image', color='success', id='true-button'),
-                        dbc.Button('False image', color='danger', id='false-button')
+                        dbc.Button('Real image',
+                                   color='success',
+                                   id='true-button',
+                                   style={'margin-right': '10px'}
+                                   ),
+                        dbc.Button('False image',
+                                   color='danger',
+                                   id='false-button',
+                                   style={'margin-left': '10px'}
+                                   )
                     ],
                     id='button-div',
-                    style={'textAlign': 'center'}
+                    style={'textAlign': 'center', 'margin-top': '20px'}
                 ),
-                width={"size": 6, "offset": 3}
+                # width={"size": 6, "offset": 3}
             )
         ),
         dbc.Row(
@@ -46,13 +54,13 @@ layout = html.Div(
                     children=[
                         dbc.Progress(
                             [
-                                dbc.Progress(value=0, color='success', bar=True, id='success-bar'),
-                                dbc.Progress(value=0, color='danger', bar=True, id='fail-bar')
+                                dbc.Progress(value=0, color='success', bar=True, id='success-bar', max=1),
+                                dbc.Progress(value=0, color='danger', bar=True, id='fail-bar', max=1)
                             ]
                         )
                     ],
                     id='output-div',
-                    style={'textAlign': 'center'}
+                    style={'textAlign': 'center', 'margin-top': '20px'}
                 ),
                 width={"size": 6, "offset": 3}
             )
@@ -60,8 +68,8 @@ layout = html.Div(
     ]
 )
 
-
 image_type = ['false', 'real']
+
 
 def create_image():
     t = np.random.randint(0, 2)
@@ -72,6 +80,8 @@ def create_image():
 
     img = rescale_grayscale_image(img)
     fig = px.imshow(img)
+    fig.update_layout(margin=dict(l=20, r=20, t=20, b=20),
+                      paper_bgcolor="LightSteelBlue")
     fig.update_layout(coloraxis_showscale=False)
     fig.update_xaxes(showticklabels=False)
     fig.update_yaxes(showticklabels=False)
