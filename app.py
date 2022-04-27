@@ -8,6 +8,8 @@ app = dash.Dash(
     __name__, plugins=[dl.plugins.pages], external_stylesheets=[dbc.themes.SLATE]
 )
 
+server = app.server
+
 # for x in dash.page_registry.values():
 #     print(x)
 
