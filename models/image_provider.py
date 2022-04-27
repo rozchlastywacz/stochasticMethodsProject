@@ -6,17 +6,17 @@ from models.dbn.dbn import Dbn
 from models.rbm.rbm import Rbm
 from models.utils import append_ones
 
-np.random.seed(1234)
+rng = np.random.default_rng(1234)
 
 DATASET_SIZE = 20000  # 60000 for whole dataset
 DIGIT_SIZE = 28
 
 mnist_train = mnist.train_images().astype(np.float32) / 255.0
-np.random.shuffle(mnist_train)
+rng.shuffle(mnist_train)
 dataset = np.reshape(mnist_train[:DATASET_SIZE], newshape=(DATASET_SIZE, DIGIT_SIZE * DIGIT_SIZE))
 dataset = append_ones(dataset)
 
-monitoring_indeces = np.random.choice(DATASET_SIZE, 256, replace=False)
+monitoring_indeces = rng.choice(DATASET_SIZE, 256, replace=False)
 monitoring_set = dataset[monitoring_indeces]
 
 rbm = Rbm()
@@ -48,7 +48,6 @@ def get_image_from_dbn():
 def rescale_grayscale_image(img):
     f = 6
     return cv2.cvtColor(cv2.resize(img, dsize=None, fx=f, fy=f), cv2.COLOR_GRAY2BGR)
-
 
 # fig, ax = plt.subplots(1, 2)
 # ax[0].imshow(rescale_grayscale_image(get_real_image()))
