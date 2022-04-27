@@ -2,9 +2,16 @@ import numpy as np
 from numpy import load
 from models.utils import zeros, append_ones, sigmoid, rand
 
+DIGIT_SIZE = 28
+VISIBLE_LAYER_SIZE = DIGIT_SIZE * DIGIT_SIZE
+HIDDEN_LAYER_SIZE = 128
+LEARNING_RATE = 0.1
+MOMENTUM = 0.5
+
 
 class Rbm:
-    def __init__(self, visible_size, hidden_size, learning_rate, momentum):
+    def __init__(self, visible_size=VISIBLE_LAYER_SIZE, hidden_size=HIDDEN_LAYER_SIZE, learning_rate=LEARNING_RATE,
+                 momentum=MOMENTUM):
         self.visible_size = visible_size
         self.hidden_size = hidden_size
         self.learning_rate = learning_rate
@@ -15,7 +22,7 @@ class Rbm:
         self.W[-1, :] = 0.0
         self.M = zeros(self.visible_size + 1, self.hidden_size + 1)
 
-    def load_weights(self, path='rbm.npz'):
+    def load_weights(self, path='D:\\Kody\\semestr_8\\stochastyczne\\stochastic_project\\models\\rbm\\rbm.npz'):
         dict_weights = load(path)
         weights = dict_weights['arr_0']
         self.W = weights

@@ -4,9 +4,16 @@ from numpy import load
 from models.rbm.rbm import Rbm
 from models.utils import sigmoid, append_ones
 
+DIGIT_SIZE = 28
+VISIBLE_LAYER_SIZE = DIGIT_SIZE * DIGIT_SIZE
+HIDDEN_LAYER_SIZE = 200
+LEARNING_RATE = 0.1
+MOMENTUM = 0.5
+
 
 class Dbn:
-    def __init__(self, visible_size, hidden_size, learning_rate, momentum):
+    def __init__(self, visible_size=VISIBLE_LAYER_SIZE, hidden_size=HIDDEN_LAYER_SIZE, learning_rate=LEARNING_RATE,
+                 momentum=MOMENTUM):
         self.layers = [
             Rbm(visible_size, hidden_size, learning_rate, momentum),
             Rbm(hidden_size, hidden_size, learning_rate, momentum),
@@ -15,7 +22,8 @@ class Dbn:
 
     def load_weights(self, paths=None):
         if paths is None:
-            paths = ['dbn_0.npz', 'dbn_1.npz', 'dbn_2.npz']
+            base_path = 'D:\\Kody\\semestr_8\\stochastyczne\\stochastic_project\\models\\dbn\\'
+            paths = [base_path+'dbn_0.npz', base_path+'dbn_1.npz', base_path+'dbn_2.npz']
         if len(paths) != len(self.layers):
             raise ValueError
         for i, path in enumerate(paths):
