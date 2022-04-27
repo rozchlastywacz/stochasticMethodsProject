@@ -22,7 +22,7 @@ class Dbn:
 
     def load_weights(self, paths=None):
         if paths is None:
-            base_path = 'models\\dbn\\'
+            base_path = 'models/dbn/'
             paths = [base_path+'dbn_0.npz', base_path+'dbn_1.npz', base_path+'dbn_2.npz']
         if len(paths) != len(self.layers):
             raise ValueError

@@ -22,7 +22,7 @@ class Rbm:
         self.W[-1, :] = 0.0
         self.M = zeros(self.visible_size + 1, self.hidden_size + 1)
 
-    def load_weights(self, path='models\\rbm\\rbm.npz'):
+    def load_weights(self, path='models/rbm/rbm.npz'):
         dict_weights = load(path)
         weights = dict_weights['arr_0']
         self.W = weights
