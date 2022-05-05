@@ -6,7 +6,7 @@ from models.image_provider import get_image_from_dbn, rescale_grayscale_image, g
 
 dash.register_page(__name__)
 
-from dash import Dash, dcc, html, Input, Output, callback
+from dash import dcc, html, Input, Output, callback
 import plotly.express as px
 import numpy as np  # pip install numpy
 
