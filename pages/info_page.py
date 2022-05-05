@@ -1,10 +1,10 @@
-
 import dash
-# Code from: https://github.com/plotly/dash-labs/tree/main/docs/demos/multi_page_example1
-dash.register_page(__name__, path="/")
-
-from dash import Dash, dcc, html, Input, Output, callback
 import plotly.express as px
+from dash import html
+
+# Code from: https://github.com/plotly/dash-labs/tree/main/docs/demos/multi_page_example1
+
+dash.register_page(__name__, path="/")
 
 df = px.data.medals_wide(indexed=True)
 
@@ -24,7 +24,6 @@ layout = html.Div(
     #     # 'margin': '0 auto'
     # }
 )
-
 
 # @callback(Output("heatmaps-graph", "figure"), Input("heatmaps-medals", "value"))
 # def filter_heatmap(cols):
