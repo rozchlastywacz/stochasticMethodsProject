@@ -6,7 +6,7 @@ from models.dbn.dbn import Dbn
 from models.rbm.rbm import Rbm
 from models.utils import append_ones
 
-rng = np.random.default_rng(1234)
+rng = np.random.default_rng()
 
 DATASET_SIZE = 512  # 60000 for whole dataset
 DIGIT_SIZE = 28
@@ -46,8 +46,10 @@ def get_image_from_dbn():
     return generated_image
 
 
+f = 6
+
+
 def rescale_grayscale_image(img):
-    f = 6
     return cv2.cvtColor(cv2.resize(img, dsize=None, fx=f, fy=f), cv2.COLOR_GRAY2BGR)
 
 # fig, ax = plt.subplots(1, 2)

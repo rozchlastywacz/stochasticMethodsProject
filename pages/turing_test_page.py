@@ -15,13 +15,17 @@ layout = html.Div(
     [
         dbc.Row(
             dbc.Col(
-                html.Div(
-                    children=[
-                        dcc.Graph(id='image-graph'),
-                        html.Div(id='image-type', hidden=True)
-                    ],
-                    id='image-div',
-                    style={'textAlign': 'center'}
+                dbc.Spinner(
+                    html.Div(
+                        children=[
+                            dcc.Graph(id='image-graph'),
+                            html.Div(id='image-type', hidden=True)
+                        ],
+                        id='image-div',
+                        style={'textAlign': 'center'}
+                    ),
+                    color='secondary',
+                    spinner_style={"width": "6rem", "height": "6rem"}
                 )
                 # width={"size": 6, "offset": 3}
             )
@@ -68,9 +72,13 @@ layout = html.Div(
 )
 
 image_type = ['false', 'real']
+dupa = 0
 
 
 def create_image():
+    global dupa
+    dupa += 1
+    print("dupa = {}".format(dupa))
     t = np.random.randint(0, 2)
     if t == 0:
         img = get_image_from_dbn()
@@ -98,9 +106,8 @@ def create_image():
     Input("fail-bar", "value"),
     Input("image-type", "children")
 )
-def true_button_clicked(n_s, n_f, val_s, val_f, img_t):
+def true_button_clicked(_n_s, _n_f, val_s, val_f, img_t):
     ctx = dash.callback_context
-
     if not ctx.triggered:
         button_id = 'No clicks yet'
     else:
