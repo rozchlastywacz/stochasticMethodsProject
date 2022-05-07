@@ -8,68 +8,8 @@ from dash import dcc, html, Input, Output, callback
 from models.image_provider import get_image_from_dbn, rescale_grayscale_image, get_real_image
 
 dash.register_page(__name__)
-
+MAX_QUESTIONS = 10.0
 np.random.seed(2020)
-
-layout = html.Div(
-    [
-        dbc.Row(
-            dbc.Col(
-                dbc.Spinner(
-                    html.Div(
-                        children=[
-                            dcc.Graph(id='image-graph'),
-                            html.Div(id='image-type', hidden=True)
-                        ],
-                        id='image-div',
-                        style={'textAlign': 'center'}
-                    ),
-                    color='secondary',
-                    spinner_style={"width": "6rem", "height": "6rem"}
-                )
-                # width={"size": 6, "offset": 3}
-            )
-        ),
-        dbc.Row(
-            dbc.Col(
-                html.Div(
-                    children=[
-                        dbc.Button('Real image',
-                                   color='success',
-                                   id='true-button',
-                                   style={'margin-right': '10px'}
-                                   ),
-                        dbc.Button('False image',
-                                   color='danger',
-                                   id='false-button',
-                                   style={'margin-left': '10px'}
-                                   )
-                    ],
-                    id='button-div',
-                    style={'textAlign': 'center', 'margin-top': '20px'}
-                ),
-                # width={"size": 6, "offset": 3}
-            )
-        ),
-        dbc.Row(
-            dbc.Col(
-                html.Div(
-                    children=[
-                        dbc.Progress(
-                            [
-                                dbc.Progress(value=0, color='success', bar=True, id='success-bar', max=1),
-                                dbc.Progress(value=0, color='danger', bar=True, id='fail-bar', max=1)
-                            ]
-                        )
-                    ],
-                    id='output-div',
-                    style={'textAlign': 'center', 'margin-top': '20px'}
-                ),
-                width={"size": 6, "offset": 3}
-            )
-        )
-    ]
-)
 
 image_type = ['false', 'real']
 dupa = 0
@@ -95,19 +35,114 @@ def create_image():
     return fig, image_type[t]
 
 
+layout = html.Div(
+    [
+        dbc.Row(
+            dbc.Col(
+                html.Div(
+                    [
+                        html.H1('Turing test'),
+                        html.Hr(),
+                        html.P('On this page You can try to test Your skills '
+                               'of recognizing what is true and what is false!'),
+                        html.P('The test consist of 10 questions. '
+                               'In each question one single image is shown and it could be: '
+                               'real image taken from the dataset '
+                               'or generated image by one of our trained models'),
+                        html.P(
+                            children=[
+                                'In each question You - a human being - have to decide if ',
+                                html.I('it is a real image or just fantasy')
+                            ]
+                        ),
+                        html.Hr(),
+
+                    ],
+                    id='test-info-div',
+                    style={'textAlign': 'center'}
+                ),
+                # width={"size": 6, "offset": 3}
+            )
+        ),
+        dbc.Row(
+            dbc.Col(
+                html.Div(
+                    children=[
+                        dbc.Spinner(
+                            dcc.Graph(figure=create_image()[0], id='image-graph', config={'staticPlot': True}),
+                            color='secondary',
+                            spinner_style={"width": "6rem", "height": "6rem"}
+                        ),
+                        html.Div(id='image-type', hidden=True)
+                    ],
+                    id='image-div',
+                    style={'textAlign': 'center'}
+                ),
+                # width={"size": 6, "offset": 3}
+            )
+        ),
+        dbc.Row(
+            dbc.Col(
+                html.Div(
+                    children=[
+                        dbc.Button('Real image',
+                                   color='success',
+                                   id='true-button',
+                                   style={'marginRight': '10px'}
+                                   ),
+                        dbc.Button('False image',
+                                   color='danger',
+                                   id='false-button',
+                                   active=False,
+                                   style={'marginLeft': '10px'}
+                                   )
+                    ],
+                    id='button-div',
+                    style={'textAlign': 'center', 'marginTop': '20px'}
+                ),
+                # width={"size": 6, "offset": 3}
+            )
+        ),
+        dbc.Row(
+            dbc.Col(
+                html.Div(
+                    children=[
+                        dbc.Progress(
+                            [
+                                dbc.Progress(value=0, color='success', bar=True, id='success-bar', max=MAX_QUESTIONS),
+                                dbc.Progress(value=0, color='danger', bar=True, id='fail-bar', max=MAX_QUESTIONS)
+                            ],
+                            max=MAX_QUESTIONS,
+                            style={"height": "2rem"}
+                        )
+                    ],
+                    id='output-div',
+                    style={'textAlign': 'center', 'marginTop': '20px'}
+                ),
+                width={"size": 6, "offset": 3}
+            )
+        )
+    ]
+)
+
+
 @callback(
     Output("success-bar", "value"),
+    Output("success-bar", "label"),
     Output("fail-bar", "value"),
+    Output("fail-bar", "label"),
     Output("image-graph", "figure"),
     Output("image-type", "children"),
     Input("true-button", "n_clicks"),
     Input("false-button", "n_clicks"),
     Input("success-bar", "value"),
     Input("fail-bar", "value"),
-    Input("image-type", "children")
+    Input("image-type", "children"),
+    prevent_initial_call=True
 )
 def true_button_clicked(_n_s, _n_f, val_s, val_f, img_t):
     ctx = dash.callback_context
+
     if not ctx.triggered:
         button_id = 'No clicks yet'
     else:
@@ -117,7 +152,7 @@ def true_button_clicked(_n_s, _n_f, val_s, val_f, img_t):
         val_s += 1
     else:
         val_f += 1
-    return val_s, val_f, *create_image()
+    return val_s, str(val_s), val_f, str(val_f), *create_image()
 
 # @callback(
 #     Output("fail-bar", "value"),
