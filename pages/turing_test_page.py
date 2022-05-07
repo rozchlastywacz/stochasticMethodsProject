@@ -2,6 +2,7 @@ import dash
 import dash_bootstrap_components as dbc  # pip install dash-bootstrap-components
 import numpy as np  # pip install numpy
 import plotly.express as px
+import time
 from dash import dcc, html, Input, Output, callback
 
 # Code from: https://github.com/plotly/dash-labs/tree/main/docs/demos/multi_page_example1
@@ -12,13 +13,9 @@ MAX_QUESTIONS = 10.0
 np.random.seed(2020)
 
 image_type = ['false', 'real']
-dupa = 0
 
 
 def create_image():
-    global dupa
-    dupa += 1
-    print("dupa = {}".format(dupa))
     t = np.random.randint(0, 2)
     if t == 0:
         img = get_image_from_dbn()
@@ -28,7 +25,7 @@ def create_image():
     img = rescale_grayscale_image(img)
     fig = px.imshow(img)
     fig.update_layout(margin=dict(l=20, r=20, t=20, b=20),
-                      paper_bgcolor="LightSteelBlue")
+                      paper_bgcolor="Gainsboro")
     fig.update_layout(coloraxis_showscale=False)
     fig.update_xaxes(showticklabels=False)
     fig.update_yaxes(showticklabels=False)
@@ -68,12 +65,11 @@ layout = html.Div(
             dbc.Col(
                 html.Div(
                     children=[
-                        dbc.Spinner(
-                            dcc.Graph(figure=create_image()[0], id='image-graph', config={'staticPlot': True}),
-                            color='secondary',
-                            spinner_style={"width": "6rem", "height": "6rem"}
-                        ),
-                        html.Div(id='image-type', hidden=True)
+                        # dbc.Spinner(
+                        dcc.Graph(figure=create_image()[0], id='image-graph', config={'staticPlot': True}),
+                        # color='secondary',
+                        # spinner_style={"width": "6rem", "height": "6rem"}
+                        # ),
                     ],
                     id='image-div',
                     style={'textAlign': 'center'}
@@ -121,7 +117,31 @@ layout = html.Div(
                 ),
                 width={"size": 6, "offset": 3}
             )
+        ),
+        dbc.Row(
+            dbc.Col(
+                html.Div(
+                    children=[],
+                    id='dummy-div',
+                    style={'textAlign': 'center', 'marginTop': '100px'}
+                ),
+                width={"size": 6, "offset": 3}
+            )
+        ),
+        dbc.Row(
+            dbc.Col(
+                html.Footer(
+                    "Cwikla et al, AGH UST",
+                    style={'textAlign': 'center'}
+                ),
+                width={"size": 6, "offset": 3}
+            ),
+        ),
+        dcc.Store(
+            id='browser-storage',
+            data={'image_type': '', 'answers': []}
         )
+
     ]
 )
 
@@ -132,17 +152,17 @@ layout = html.Div(
     Output("fail-bar", "value"),
     Output("fail-bar", "label"),
     Output("image-graph", "figure"),
-    Output("image-type", "children"),
+    Output("browser-storage", "data"),
     Input("true-button", "n_clicks"),
     Input("false-button", "n_clicks"),
     Input("success-bar", "value"),
     Input("fail-bar", "value"),
-    Input("image-type", "children"),
+    Input("browser-storage", "data"),
     prevent_initial_call=True
 )
-def true_button_clicked(_n_s, _n_f, val_s, val_f, img_t):
+def true_button_clicked(_n_s, _n_f, val_s, val_f, storage_data):
     ctx = dash.callback_context
-
+    img_t = storage_data['image_type']
     if not ctx.triggered:
         button_id = 'No clicks yet'
     else:
@@ -152,7 +172,9 @@ def true_button_clicked(_n_s, _n_f, val_s, val_f, img_t):
         val_s += 1
     else:
         val_f += 1
-    return val_s, str(val_s), val_f, str(val_f), *create_image()
+    n_img, n_img_t = create_image()
+    storage_data['image_type'] = n_img_t
+    return val_s, str(val_s), val_f, str(val_f), n_img, storage_data
 
 # @callback(
 #     Output("fail-bar", "value"),
