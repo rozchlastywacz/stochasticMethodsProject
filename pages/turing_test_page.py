@@ -1,5 +1,3 @@
-import time
-
 import dash
 import dash_bootstrap_components as dbc  # pip install dash-bootstrap-components
 import numpy as np  # pip install numpy
@@ -12,24 +10,6 @@ from models.image_provider import get_image_from_dbn, rescale_grayscale_image, g
 dash.register_page(__name__)
 MAX_QUESTIONS = 10
 np.random.seed(2020)
-image_type = ['false', 'real']
-
-
-def create_image():
-    t = np.random.randint(0, 2)
-    if t == 0:
-        img = get_image_from_dbn()
-    else:
-        img = get_real_image()
-
-    img = rescale_grayscale_image(img)
-    fig = px.imshow(img)
-    fig.update_layout(margin=dict(l=20, r=20, t=20, b=20),
-                      paper_bgcolor="Gainsboro")
-    fig.update_layout(coloraxis_showscale=False)
-    fig.update_xaxes(showticklabels=False)
-    fig.update_yaxes(showticklabels=False)
-    return fig, image_type[t]
 
 
 def load_initial_image():
@@ -154,11 +134,30 @@ layout = html.Div(
         ),
         dcc.Store(
             id='browser-storage',
-            data={'image_type': '', 'current_que': 0, 'questions': [], 'answers': []}
+            data={'current_que': 0, 'questions': [], 'answers': []}
         )
 
     ]
 )
+
+image_type = ['false', 'real']
+
+
+def create_image():
+    t = np.random.randint(0, 2)
+    if t == 0:
+        img = get_image_from_dbn()
+    else:
+        img = get_real_image()
+
+    img = rescale_grayscale_image(img)
+    fig = px.imshow(img)
+    fig.update_layout(margin=dict(l=20, r=20, t=20, b=20),
+                      paper_bgcolor="Gainsboro")
+    fig.update_layout(coloraxis_showscale=False)
+    fig.update_xaxes(showticklabels=False)
+    fig.update_yaxes(showticklabels=False)
+    return fig, image_type[t]
 
 
 def reset_test_clicked(storage_data):
