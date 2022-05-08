@@ -54,7 +54,7 @@ def rescale_grayscale_image(img):
 
 
 def get_starter_image():
-    img = cv2.imread('assets\\starter_image.png')
+    img = cv2.imread('assets/starter_image.png')
     w, h, _ = img.shape
     g = (f*DIGIT_SIZE)/w
     return cv2.resize(img, dsize=None, fx=g, fy=g)
