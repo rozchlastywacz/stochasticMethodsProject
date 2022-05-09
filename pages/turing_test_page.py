@@ -5,6 +5,7 @@ import plotly.express as px
 from dash import dcc, html, Input, Output, callback
 
 # Code from: https://github.com/plotly/dash-labs/tree/main/docs/demos/multi_page_example1
+from database_manager.db_manager import append_new_answers
 from models.image_provider import get_image_from_dbn, rescale_grayscale_image, get_real_image, get_starter_image
 
 dash.register_page(__name__)
@@ -220,18 +221,20 @@ def some_button_clicked(_n_s, _n_f, _n_r, val_s, val_f, storage_data):
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
-    if button_id in ['true-button', 'false-button']:
+    answer_buttons = ['true-button', 'false-button']
+    if button_id in answer_buttons:
         img_i = storage_data['current_que']
         img_t = storage_data['questions'][img_i]['label']
 
         if answer_is_correct(button_id, img_t):
             val_s += 1
-            answer = True
-            storage_data['answers'].append(answer)
         else:
             val_f += 1
-            answer = False
-            storage_data['answers'].append(answer)
+
+        user_ans = True if button_id == answer_buttons[0] else False
+        correct_ans = True if img_t == image_type[1] else False
+        answer = {'user': user_ans, 'correct': correct_ans}
+        storage_data['answers'].append(answer)
 
         storage_data['current_que'] += 1
 
@@ -242,6 +245,7 @@ def some_button_clicked(_n_s, _n_f, _n_r, val_s, val_f, storage_data):
             n_img = storage_data['questions'][-1]['img']
             # TODO save answers
             # print(storage_data['answers'])
+            append_new_answers(storage_data['answers'])
             return val_s, str(val_s), val_f, str(val_f), n_img, storage_data
 
         return val_s, str(val_s), val_f, str(val_f), n_img, storage_data
