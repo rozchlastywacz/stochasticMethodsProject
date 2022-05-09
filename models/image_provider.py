@@ -58,7 +58,3 @@ def get_starter_image():
     w, h, _ = img.shape
     g = (f*DIGIT_SIZE)/w
     return cv2.resize(img, dsize=None, fx=g, fy=g)
-# fig, ax = plt.subplots(1, 2)
-# ax[0].imshow(rescale_grayscale_image(get_real_image()))
-# ax[1].imshow(rescale_grayscale_image(get_image_from_dbn()))
-# plt.show()

@@ -10,18 +10,22 @@ from models.image_provider import get_image_from_dbn, rescale_grayscale_image, g
 
 dash.register_page(__name__)
 MAX_QUESTIONS = 10
-np.random.seed(2020)
 
 
-def load_initial_image():
-    img = get_starter_image()
-
+def create_figure(img):
     fig = px.imshow(img)
     fig.update_layout(margin=dict(l=20, r=20, t=20, b=20),
                       paper_bgcolor="Gainsboro")
     fig.update_layout(coloraxis_showscale=False)
     fig.update_xaxes(showticklabels=False)
     fig.update_yaxes(showticklabels=False)
+    return fig
+
+
+def load_initial_image():
+    img = get_starter_image()
+
+    fig = create_figure(img)
     return fig
 
 
@@ -152,12 +156,7 @@ def create_image():
         img = get_real_image()
 
     img = rescale_grayscale_image(img)
-    fig = px.imshow(img)
-    fig.update_layout(margin=dict(l=20, r=20, t=20, b=20),
-                      paper_bgcolor="Gainsboro")
-    fig.update_layout(coloraxis_showscale=False)
-    fig.update_xaxes(showticklabels=False)
-    fig.update_yaxes(showticklabels=False)
+    fig = create_figure(img)
     return fig, image_type[t]
 
 
