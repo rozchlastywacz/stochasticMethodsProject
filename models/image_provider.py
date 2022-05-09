@@ -8,7 +8,7 @@ from models.utils import append_ones
 
 rng = np.random.default_rng()
 
-DATASET_SIZE = 512  # 60000 for whole dataset
+DATASET_SIZE = 1024  # 60000 for whole dataset
 DIGIT_SIZE = 28
 
 mnist_train = mnist.train_images().astype(np.float32) / 255.0
@@ -17,8 +17,9 @@ dataset = np.reshape(mnist_train[:DATASET_SIZE], newshape=(DATASET_SIZE, DIGIT_S
 dataset = append_ones(dataset)
 del mnist_train
 
-monitoring_indeces = rng.choice(DATASET_SIZE, 256, replace=False)
+monitoring_indeces = rng.choice(DATASET_SIZE, DATASET_SIZE//2, replace=False)
 monitoring_set = dataset[monitoring_indeces]
+del dataset
 
 rbm = Rbm()
 rbm.load_weights()

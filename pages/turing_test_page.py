@@ -1,15 +1,19 @@
+import uuid
+import os
 import dash
 import dash_bootstrap_components as dbc  # pip install dash-bootstrap-components
 import numpy as np  # pip install numpy
 import plotly.express as px
-from dash import dcc, html, Input, Output, callback
+from dash import dcc, html, Input, Output, callback, State
 
 # Code from: https://github.com/plotly/dash-labs/tree/main/docs/demos/multi_page_example1
+from dash.exceptions import PreventUpdate
+
 from database_manager.db_manager import append_new_answers
 from models.image_provider import get_image_from_dbn, rescale_grayscale_image, get_real_image, get_starter_image
 
 dash.register_page(__name__)
-MAX_QUESTIONS = 10
+MAX_QUESTIONS = int(os.environ.get('MAX_QUE', 10))
 
 
 def create_figure(img):
@@ -29,8 +33,10 @@ def load_initial_image():
     return fig
 
 
-true_button = dbc.Button('Real image', disabled=True, color='success', id='true-button', style={'marginRight': '10px'})
-false_button = dbc.Button('False image', disabled=True, color='danger', id='false-button', style={'marginLeft': '10px'})
+true_button = dbc.Button('Real image', disabled=True, color='secondary', id='true-button',
+                         style={'marginRight': '10px'})
+false_button = dbc.Button('False image', disabled=True, color='secondary', id='false-button',
+                          style={'marginLeft': '10px'})
 layout = html.Div(
     [
         dbc.Row(
@@ -38,17 +44,17 @@ layout = html.Div(
                 html.Div(
                     [
                         html.H1('Turing test'),
-                        html.Hr(),
                         html.P('On this page You can try to test Your skills '
                                'of recognizing what is true and what is false!'),
-                        html.P('The test consist of 10 questions. '
+                        html.P('The test consist of {} questions. '.format(MAX_QUESTIONS) +
                                'In each question one single image is shown and it could be: '
                                'real image taken from the dataset '
-                               'or generated image by one of our trained models'),
+                               'or generated image by one of our trained models.'),
                         html.P(
                             children=[
                                 'In each question You - a human being - have to decide if ',
-                                html.I('it is a real image or just fantasy')
+                                html.A(html.I('it is a real image or just fantasy.'),
+                                       href='https://www.youtube.com/watch?v=fJ9rUzIMcZQ&ab_channel=QueenOfficial')
                             ]
                         ),
                         html.Hr(),
@@ -64,12 +70,33 @@ layout = html.Div(
             dbc.Col(
                 html.Div(
                     children=[
-                        html.P('Press the button below to start/reset Your test'),
-                        dbc.Button('Restart test',
+                        html.H2('How to do the test'),
+                        html.P('Initially, some dummy image will be displayed, answers button disabled.'),
+                        html.P('After pressing the button below app will prepare questions for You (few seconds).'),
+                        html.P('When preparation is done, '
+                               'the first image will be displayed and answers buttons will be unlocked.'),
+                        html.P('Look at the image, choose answer by clicking button '
+                               '- after that next image will be displayed.'),
+                        html.P('After You finish the test, '
+                               'the last image will be displayed, answers buttons will be disabled.'),
+                        html.Hr(),
+                        html.P('Press the button below to run/re-run Your test'),
+                        dbc.Button('Run test',
                                    color='primary',
                                    id='reset-test-button',
                                    style={'marginBottom': '10px'}
                                    ),
+                    ],
+                    id='instruction-div',
+                    style={'textAlign': 'center'}
+                ),
+                # width={"size": 6, "offset": 3}
+            )
+        ),
+        dbc.Row(
+            dbc.Col(
+                html.Div(
+                    children=[
                         dbc.Spinner(
                             dcc.Graph(figure=load_initial_image(), id='image-graph', config={'staticPlot': True}),
                             color='secondary',
@@ -118,14 +145,17 @@ layout = html.Div(
             dbc.Col(
                 html.Div(
                     children=[
+                        html.P('Progress bar has the same length as number of questions, '
+                               'the green bar represents correct answers '
+                               '- times when You properly labeled real images as real and generated as false, '
+                               'and the red bar represents incorrect answers.'),
+                        html.P('If you answer correctly the green one gets longer, otherwise the red gets longer.'),
                         html.Hr(),
-                        html.P('Your test has ended, please click reset button to start again'),
                     ],
-                    id='dummy-div',
-                    hidden=True,
+                    id='bar-explanation-div',
                     style={'textAlign': 'center', 'marginTop': '10px'}
                 ),
-                width={"size": 6, "offset": 3}
+                # width={"size": 6, "offset": 3}
             )
         ),
         dbc.Row(
@@ -140,9 +170,72 @@ layout = html.Div(
         dcc.Store(
             id='browser-storage',
             data={'current_que': 0, 'questions': [], 'answers': []}
-        )
+        ),
+        dcc.Store(id='local-storage', storage_type='local'),
+        dbc.Modal(
+            [
+                dbc.ModalHeader(
+                    dbc.ModalTitle("You finished the test!")
+                ),
+                dbc.ModalBody(
+                    'Your score: {}% If you wish to try again, close this pop-up and press re-run button.',
+                    id='results-modal-body'
+                ),
+                dbc.ModalFooter(dbc.Button("Close", id='close-modal'))
+            ],
+            id='results-modal',
+            is_open=False
+        ),
+        html.Div(
+            children=[
+                html.Div(
+                    children=[],
+                    id='garbage-output-0',
+                    hidden=True
+                ),
+                html.Div(
+                    children=[],
+                    id='garbage-output-1',
+                    hidden=True
+                )
+            ],
+            id='garbage-outputs',
+            hidden=True
+        ),
+
 
     ]
+)
+# move after clicking reset
+dash.clientside_callback(
+    """
+    function(clicks, elemid) {
+        document.getElementById(elemid).scrollIntoView({
+          behavior: 'smooth'
+        });
+    }
+    """,
+    Output('garbage-output-0', 'children'),
+    [Input('reset-test-button', 'n_clicks')],
+    [State('image-graph', 'id')],
+    prevent_initial_call=True
+
+)
+
+# move after clicking close in modal
+dash.clientside_callback(
+    """
+    function(clicks, elemid) {
+        document.getElementById(elemid).scrollIntoView({
+          behavior: 'smooth'
+        });
+    }
+    """,
+    Output('garbage-output-1', 'children'),
+    [Input('close-modal', 'n_clicks')],
+    [State('instruction-div', 'id')],
+    prevent_initial_call=True
+
 )
 
 image_type = ['false', 'real']
@@ -183,18 +276,74 @@ def answer_is_correct(button_id, img_t):
            or button_id == 'false-button' and img_t == image_type[0]
 
 
+def calculate_answer_percent_score(answers):
+    # answer = {'user': user_ans, 'correct': correct_ans}
+    good = 0
+    for ans in answers:
+        if ans['user'] == ans['correct']:
+            good += 1
+
+    return 100.0 * good / len(answers)
+
+
+@callback(
+    Output("local-storage", "data"),
+    Input('garbage-output-0', 'children'),
+    State("local-storage", "data")
+)
+def save_unique_id(_, data):
+    if data is not None:
+        raise PreventUpdate
+    data = data or {'uniq_browser_id': str(uuid.uuid1())}
+    return data
+
+
+@callback(
+    Output("results-modal", "is_open"),
+    Output("results-modal-body", "children"),
+    Input("close-modal", "n_clicks"),
+    Input("browser-storage", "data"),
+    prevent_initial_call=True
+)
+def close_modal_callback(n, storage_data):
+    modal_msg = 'Your score: {}% If you wish to try again, close this pop-up and press re-run button.'
+    ctx = dash.callback_context
+
+    if not ctx.triggered:
+        button_id = 'No clicks yet'
+    else:
+        button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if button_id == 'close-modal':
+        return False, modal_msg
+    else:
+        if storage_data['current_que'] < MAX_QUESTIONS:
+            return False, modal_msg
+        answers = storage_data['answers']
+        score = calculate_answer_percent_score(answers)
+        return True, modal_msg.format(score)
+
+
+@callback(
+    Output("reset-test-button", "children"),
+    Input("reset-test-button", "n_clicks"),
+    prevent_initial_call=True
+)
+def start_button_clicked(_n):
+    return 'Re-run test'
+
+
 @callback(
     Output("true-button", "disabled"),
     Output("false-button", "disabled"),
-    Output("dummy-div", "hidden"),
     Input("browser-storage", "data"),
     prevent_initial_call=True
 )
 def toggle_buttons(storage_data):
     if storage_data['current_que'] < MAX_QUESTIONS:
-        return False, False, True
+        return False, False
     else:
-        return True, True, False
+        return True, True
 
 
 @callback(
@@ -210,15 +359,19 @@ def toggle_buttons(storage_data):
     Input("success-bar", "value"),
     Input("fail-bar", "value"),
     Input("browser-storage", "data"),
+    Input("local-storage", "data"),
     prevent_initial_call=True
 )
-def some_button_clicked(_n_s, _n_f, _n_r, val_s, val_f, storage_data):
+def some_button_clicked(_n_s, _n_f, _n_r, val_s, val_f, storage_data, local_storage_data):
     ctx = dash.callback_context
 
     if not ctx.triggered:
         button_id = 'No clicks yet'
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if button_id == 'local-storage':
+        raise PreventUpdate
 
     answer_buttons = ['true-button', 'false-button']
     if button_id in answer_buttons:
@@ -244,7 +397,7 @@ def some_button_clicked(_n_s, _n_f, _n_r, val_s, val_f, storage_data):
             n_img = storage_data['questions'][-1]['img']
             # TODO save answers
             # print(storage_data['answers'])
-            append_new_answers(storage_data['answers'])
+            append_new_answers(storage_data['answers'], local_storage_data['uniq_browser_id'])
             return val_s, str(val_s), val_f, str(val_f), n_img, storage_data
 
         return val_s, str(val_s), val_f, str(val_f), n_img, storage_data
