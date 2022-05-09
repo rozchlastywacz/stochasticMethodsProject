@@ -30,5 +30,5 @@ db_app = firebase_admin.initialize_app(cred, {
 
 def append_new_answers(answers, id):
     today = datetime.today().strftime('%Y-%m-%d')
-    ref = db.reference('/turing_tests/{}'.format(today))
-    ref.push().set({'user_id': id, 'answers': answers})
+    ref = db.reference('/turing_tests/')
+    ref.push().set({'user_id': id, 'answers': answers, 'date': today})
