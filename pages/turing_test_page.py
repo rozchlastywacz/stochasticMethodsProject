@@ -14,6 +14,9 @@ from models.image_provider import get_image_from_dbn, rescale_grayscale_image, g
 
 dash.register_page(__name__)
 MAX_QUESTIONS = int(os.environ.get('MAX_QUE', 10))
+LOCAL_DEVELOPMENT = True
+if os.environ.get('MAX_QUE'):
+    LOCAL_DEVELOPMENT = False
 
 
 def create_figure(img):
@@ -202,7 +205,6 @@ layout = html.Div(
             id='garbage-outputs',
             hidden=True
         ),
-
 
     ]
 )
@@ -395,9 +397,11 @@ def some_button_clicked(_n_s, _n_f, _n_r, val_s, val_f, storage_data, local_stor
             n_img = storage_data['questions'][img_i]['img']
         else:
             n_img = storage_data['questions'][-1]['img']
-            # TODO save answers
-            # print(storage_data['answers'])
-            append_new_answers(storage_data['answers'], local_storage_data['uniq_browser_id'])
+            if LOCAL_DEVELOPMENT:
+                print(storage_data['answers'])
+                print(local_storage_data['uniq_browser_id'])
+            else:
+                append_new_answers(storage_data['answers'], local_storage_data['uniq_browser_id'])
             return val_s, str(val_s), val_f, str(val_f), n_img, storage_data
 
         return val_s, str(val_s), val_f, str(val_f), n_img, storage_data
